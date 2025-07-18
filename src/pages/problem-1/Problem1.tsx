@@ -3,6 +3,8 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import FirstSolution from "./FirstSolution";
 import { useState } from "react";
 import { useRef } from "react";
+import SecondSolution from "./SecondSolution";
+import ThirdSolution from "./ThirdSolution";
 
 export default function Problem1() {
   const [n, setN] = useState<number | null>(null);
@@ -11,7 +13,7 @@ export default function Problem1() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log(formRef.current?.n.value);
-    setN(formRef.current?.n.value);
+    setN(Number(formRef.current?.n.value));
   };
   return (
     <div className='grid md:grid-cols-3 h-full p-4 gap-4'>
@@ -98,11 +100,13 @@ var sum_to_n_c = function(n) {
             </button>
           </div>
         </form>
-        <div className='mt-4 grid grid-cols-1 gap-8'>
-          <FirstSolution n={n} />
-          <FirstSolution n={n} />
-          <FirstSolution n={n} />
-        </div>
+        {n !== null && (
+          <div className='mt-4 grid grid-cols-1 gap-8'>
+            <FirstSolution n={n} />
+            <SecondSolution n={n} />
+            <ThirdSolution n={n} />
+          </div>
+        )}
       </div>
     </div>
   );
