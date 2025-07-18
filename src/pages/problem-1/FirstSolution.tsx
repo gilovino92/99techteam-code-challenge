@@ -50,22 +50,7 @@ export default function FirstSolution({ n }: { n: null|number}) {
           padding: "1.25rem",
         }}>
         {
-            `# This is a Level 1 Header
-{Image: the title above is called a level-1 heading}
-
-This is a paragraph of regular text.  You can make words **bold** or *italicized*.
-{Image: markdown formatting italics, italics, and italics}
-
-Here is a list:
-*   Item 1
-*   Item 2
-    *   Subitem 1
-    *   Subitem 2
-- Item 3
-+ Item 4
-
-You can also create links: [Example Link](https://www.example.com)
-{Image: table in markdown}`
+          typingText
         }
           
         </SyntaxHighlighter>
