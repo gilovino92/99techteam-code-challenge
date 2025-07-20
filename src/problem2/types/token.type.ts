@@ -31,3 +31,10 @@ export interface Store {
      state: StoreState;
      dispatch: React.Dispatch<Action>;
 }
+
+export interface SwapPayload {
+    fromToken: Token;
+    toToken: Token;
+    fromAmount: string;
+    toAmount: string;
+}

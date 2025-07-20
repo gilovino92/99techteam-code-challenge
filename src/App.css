@@ -21,6 +21,10 @@ body {
   color: #fff;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 /* .logo {
   height: 6em;
   padding: 1.5em;

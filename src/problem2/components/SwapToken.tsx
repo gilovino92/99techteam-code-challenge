@@ -1,180 +1,288 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useStore } from "../store/useStore";
 import { TokenSelectModal } from "./TokenSelect";
+import type { Token } from "../types/token.type";
+import CurrencyInput, {
+  type CurrencyInputOnChangeValues,
+} from "react-currency-input-field";
+import { formatCurrency } from "../utils/currencyFormat";
+import Modal from "../ui-components/Modal";
+import TokenItem from "./TokenItem";
 
 export default function SwapToken() {
-  const { state } = useStore();
-  const [fromToken, setFromToken] = useState("ETH");
-  const [toToken, setToToken] = useState("EOS");
+  const { state, dispatch } = useStore();
+  const [isModalOpen, setIsModalOpen] = useState({
+    isOpen: false,
+    status: "",
+    message: "",
+  });
+  const [fromToken, setFromToken] = useState<Token | undefined>(undefined);
+  const [toToken, setToToken] = useState<Token | undefined>(undefined);
   const [fromAmount, setFromAmount] = useState("0.00");
   const [toAmount, setToAmount] = useState("0.00");
-  const [isFromDropdownOpen, setIsFromDropdownOpen] = useState(false);
-  const [isToDropdownOpen, setIsToDropdownOpen] = useState(false);
 
-  const availableTokens = [
-    { symbol: "ETH", name: "Ethereum", balance: "1.0000 ETH" },
-    { symbol: "EOS", name: "EOS", balance: "400.8089 EOS" },
-    { symbol: "USDT", name: "Tether", balance: "1000.0000 USDT" },
-    { symbol: "USDC", name: "USD Coin", balance: "500.0000 USDC" },
-  ];
-
-  const handleSwapTokens = () => {
+  const handleSwitchTokens = () => {
     setFromToken(toToken);
     setToToken(fromToken);
     setFromAmount(toAmount);
     setToAmount(fromAmount);
   };
 
-  const getTokenBalance = (token: string) => {
-    const tokenData = availableTokens.find(t => t.symbol === token);
-    return tokenData?.balance || "0.0000";
+  useEffect(() => {
+    if (state.tokensPrice.length > 0) {
+      setFromToken(state.tokensPrice[0]);
+      setToToken(state.tokensPrice[1]);
+    }
+  }, [state.tokensPrice]);
+
+  const handleFromTokenChange = (token: Token | undefined) => {
+    if (!token) return;
+    setFromToken(token);
+    setFromAmount("0.00");
+    setToAmount("0.00");
   };
 
+  const handleToTokenChange = (token: Token | undefined) => {
+    if (!token) return;
+    setToToken(token);
+    setFromAmount("0.00");
+    setToAmount("0.00");
+  };
+
+  const getTokenBalance = useCallback(
+    (token: Token | undefined) => {
+      if (!token) return 0;
+      const balance = state.wallet.balance.find(
+        (b) => b.currency === token.currency
+      );
+      return balance?.total || 0;
+    },
+    [state.wallet.balance]
+  );
+
+  const getPrice = useCallback(
+    (token: Token | undefined) => {
+      if (!token) return 0;
+      const price = state.tokensPrice.find(
+        (p) => p.currency === token.currency
+      )?.price;
+      return price || 0;
+    },
+    [state.tokensPrice]
+  );
+
+  const exchangeRate = useMemo(() => {
+    if (!fromToken || !toToken) return 0;
+    const fromPrice = getPrice(fromToken);
+    const toPrice = getPrice(toToken);
+    return fromPrice && toPrice ? fromPrice / toPrice : 0;
+  }, [fromToken, toToken, getPrice]);
+
+  const onFromAmountChange = useCallback(
+    (values: CurrencyInputOnChangeValues | undefined) => {
+      if (!values) return;
+      console.log(values)
+      setFromAmount(values.value || "0");
+      const toAmount = (values.float || 0) * exchangeRate;
+      setToAmount(toAmount.toString());
+    },
+    [exchangeRate]
+  );
+
+  const fromAmontValidation = useMemo(() => {
+    if (!fromToken) return true;
+    const fromBalance = getTokenBalance(fromToken);
+    return fromBalance >= Number(fromAmount);
+  }, [fromToken, getTokenBalance, fromAmount]);
+
+  const onToAmountChange = useCallback(
+    (values: CurrencyInputOnChangeValues | undefined) => {
+      if (!values) return;
+      setToAmount(values.value || "0");
+      const fromAmount = (values.float || 0) / exchangeRate;
+      setFromAmount(fromAmount.toString());
+    },
+    [exchangeRate]
+  );
+
+  const isSwappable = useMemo(() => {
+    if (!fromToken || !toToken) return false;
+    const fromBalance = getTokenBalance(fromToken);
+    return (
+      !!Number(fromBalance) &&
+      !!Number(fromAmount) &&
+      !!Number(toAmount) &&
+      Number(fromBalance) >= Number(fromAmount)
+    );
+  }, [fromToken, toToken, getTokenBalance, fromAmount, toAmount]);
+  const handleSwap = () => {
+    setIsModalOpen({
+      isOpen: true,
+      status: "swaping",
+      message: "Swapping...",
+    });
+    const timeout = setTimeout(() => {
+      dispatch({
+        type: "SWAP_TOKEN",
+        payload: {
+          fromToken,
+          toToken,
+          fromAmount,
+          toAmount,
+        },
+      });
+      setFromAmount("0.00");
+      setToAmount("0.00");
+      setIsModalOpen({
+        isOpen: true,
+        status: "success",
+        message: "Swap successful!",
+      });
+    }, 3000);
+    return () => clearTimeout(timeout);
+  };
   return (
     <div className='bg-gray-800 rounded-2xl p-6 text-white'>
       {/* Header */}
-      <div className='flex items-center justify-between mb-6'>
-        <h2 className='text-xl font-semibold text-white'>Swap</h2>
+      <div className='flex items-center justify-center mb-4 text-center'>
+        <h2 className='text-2xl font-semibold text-white'>Swap</h2>
       </div>
-
       {/* From Token Section */}
       <div className='mb-4'>
-        <div className='flex items-center justify-between bg-gray-700 rounded-xl p-4'>
-          <div className='flex items-center gap-3'>
-            <div className='w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm'>
-              {fromToken.charAt(0)}
-            </div>
-            <div className='relative'>
-              <button
-                onClick={() => setIsFromDropdownOpen(!isFromDropdownOpen)}
-                className='flex items-center gap-2 text-white hover:text-gray-300 transition-colors'
-              >
-                <span className='font-semibold'>{fromToken}</span>
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                </svg>
-              </button>
-              {isFromDropdownOpen && (
-                <div className='absolute top-full left-0 mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-20 min-w-[200px]'>
-                  {availableTokens.map((token) => (
-                    <button
-                      key={token.symbol}
-                      onClick={() => {
-                        setFromToken(token.symbol);
-                        setIsFromDropdownOpen(false);
-                      }}
-                      className='flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg text-left'
-                    >
-                      <div className='w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs'>
-                        {token.symbol.charAt(0)}
-                      </div>
-                      <div>
-                        <div className='text-white font-medium'>{token.symbol}</div>
-                        <div className='text-gray-400 text-sm'>{token.name}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+        <div className='justify-between bg-gray-700 rounded-xl p-4 w-full'>
+          <TokenSelectModal
+            tokens={state.tokensPrice}
+            selectedToken={fromToken}
+            onTokenSelect={(token) => handleFromTokenChange(token)}
+          />
+          <div className='text-right'>
+            <CurrencyInput
+              className='bg-transparent text-white text-xl font-semibold outline-none text-right w-full'
+              name='fromAmount'
+              placeholder='0.0000'
+              value={fromAmount}
+              decimalsLimit={4}
+              maxLength={13}
+              onValueChange={(_value, _name, values) =>
+                onFromAmountChange(values)
+              }
+            />
+            <div className='flex justify-between items-center text-gray-400 text-sm mt-1 font-semibold'>
+              <div className='text-green-500'>
+                ~ ${formatCurrency(getPrice(fromToken))}
+              </div>
+              <div>Balance: {formatCurrency(getTokenBalance(fromToken))}</div>
             </div>
           </div>
-          <div className='text-right'>
-            <input
-              type='text'
-              value={fromAmount}
-              onChange={(e) => setFromAmount(e.target.value)}
-              className='bg-transparent text-white text-xl font-semibold outline-none text-right w-24'
-              placeholder='0.00'
-            />
-            <div className='text-gray-400 text-sm mt-1'>
-              Balance: {getTokenBalance(fromToken)}
+          <div className='text-red-400 py-2 relative text-xs text-right mt-1'>
+            <div className='absolute top-0 left-0 w-full h-full'>
+              {fromAmontValidation ? "" : "Your balance is not insufficient"}
             </div>
           </div>
         </div>
       </div>
-
       {/* Swap Arrow */}
       <div className='flex justify-center mb-4'>
         <button
-          onClick={handleSwapTokens}
-          className='p-3 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors'
+          onClick={handleSwitchTokens}
+          className='bg-gray-700 w-12 h-12 hover:bg-gray-600 rounded-full transition-colors cursor-pointer'
         >
-          <svg className='w-5 h-5 text-white transform rotate-90' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
-          </svg>
+          <i className='fas fa-exchange-alt rotate-90 text-md'></i>
         </button>
       </div>
-
       {/* To Token Section */}
       <div className='mb-6'>
-        <div className='flex items-center justify-between bg-gray-700 rounded-xl p-4'>
-          <div className='flex items-center gap-3'>
-            <div className='w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm'>
-              {toToken.charAt(0)}
-            </div>
-            <div className='relative'>
-              <button
-                onClick={() => setIsToDropdownOpen(!isToDropdownOpen)}
-                className='flex items-center gap-2 text-white hover:text-gray-300 transition-colors'
-              >
-                <span className='font-semibold'>{toToken}</span>
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                </svg>
-              </button>
-              {isToDropdownOpen && (
-                <div className='absolute top-full left-0 mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-20 min-w-[200px]'>
-                  {availableTokens.map((token) => (
-                    <button
-                      key={token.symbol}
-                      onClick={() => {
-                        setToToken(token.symbol);
-                        setIsToDropdownOpen(false);
-                      }}
-                      className='flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg text-left'
-                    >
-                      <div className='w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs'>
-                        {token.symbol.charAt(0)}
-                      </div>
-                      <div>
-                        <div className='text-white font-medium'>{token.symbol}</div>
-                        <div className='text-gray-400 text-sm'>{token.name}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+        <div className='justify-between bg-gray-700 rounded-xl p-4 w-full'>
+          <TokenSelectModal
+            tokens={state.tokensPrice}
+            selectedToken={toToken}
+            onTokenSelect={handleToTokenChange}
+          />
           <div className='text-right'>
-            <input
-              type='text'
+            <CurrencyInput
+              className='bg-transparent text-white text-xl font-semibold outline-none text-right w-full'
+              name='toAmount'
+              placeholder='0.0000'
               value={toAmount}
-              onChange={(e) => setToAmount(e.target.value)}
-              className='bg-transparent text-white text-xl font-semibold outline-none text-right w-24'
-              placeholder='0.00'
+              decimalsLimit={4}
+              maxLength={13}
+              onValueChange={(_value, _name, values) => onToAmountChange(values)}
             />
-            <div className='text-gray-400 text-sm mt-1'>
-              Balance: {getTokenBalance(toToken)}
+            <div className='flex justify-between items-center text-gray-400 text-sm mt-1 font-semibold'>
+              <div className='text-green-500'>
+                ~ ${formatCurrency(getPrice(toToken))}
+              </div>
+              <div>Balance: {formatCurrency(getTokenBalance(toToken))}</div>
             </div>
           </div>
         </div>
       </div>
-
       {/* Exchange Rate Info */}
       <div className='text-center text-gray-400 text-sm mb-6'>
-        1 EOS = 0.000004881
+        1 {fromToken?.currency} ~ {formatCurrency(exchangeRate)}{" "}
+        {toToken?.currency}
       </div>
-
       {/* Swap Button */}
-      <button className='w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-xl transition-colors'>
+      <button
+        disabled={!isSwappable}
+        onClick={handleSwap}
+        className='w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-xl transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed'
+      >
         Swap
       </button>
-      <TokenSelectModal
-        tokens={state.tokensPrice}
-        selectedToken={fromToken}
-        onTokenSelect={setFromToken}
-      />
+      <Modal
+        isOpen={isModalOpen.isOpen}
+        onClose={() =>
+          setIsModalOpen({ isOpen: false, status: "", message: "" })
+        }
+        showCloseButton={false}
+        closeOnEscape={false}
+      >
+        <div className='flex flex-col items-center justify-center text-center gap-4'>
+          {isModalOpen.status === "swaping" && (
+            <>
+              <h1>
+                <i className='fas fa-sync text-yellow-500 animate-spin text-[40px]'></i>
+              </h1>
+              <div className=''>
+                Swaping <span className='text-xl font-semibold text-yellow-500'>{formatCurrency(Number(fromAmount))} {fromToken?.currency}</span>.
+              </div>
+              <div className='flex items-center gap-6'>
+                {" "} 
+                <TokenItem token={fromToken!} />{" "}
+                <i className='fas fa-arrow-right text-md'></i>{" "}
+                <TokenItem token={toToken!} />
+              </div>
+              <div>
+                You will receive{" "}
+                <span className='text-xl font-semibold text-green-500'>
+                  {formatCurrency(Number(toAmount))} {toToken?.currency}.
+                </span>
+                </div>
+            
+            </>
+          )}
+          {isModalOpen.status === "success" && (
+            <>
+              <h1>
+                <i className='fas fa-check-circle text-green-500 text-[60px]'></i>
+              </h1>
+              <h2 className='text-2xl font-semibold text-white'>
+                The transaction was successful ! Please check your wallet.
+              </h2>
+
+              <button
+                onClick={() =>
+                  setIsModalOpen({ isOpen: false, status: "", message: "" })
+                }
+                className='bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-xl w-full mt-4 transition-colors'
+              >
+                Done
+              </button>
+            </>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
