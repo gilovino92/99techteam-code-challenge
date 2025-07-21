@@ -1,7 +1,7 @@
 # Code Challenge
 
 This project is a collection of coding problems implemented using **React** and **Vite**, with environment variables managed via a local `.env` file. Each problem is organized in its own folder under `src`, with a dedicated `README.md` file explaining the problem and its solution. The project is built and deployed to [URL X](https://example.com).
-## Deployment
+## Live Demo
 
 All problems are deployed at [https://99techteam-code-challenge-flax.vercel.app/](https://99techteam-code-challenge-flax.vercel.app/).
 
