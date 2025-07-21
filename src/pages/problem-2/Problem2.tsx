@@ -5,7 +5,7 @@ import { StoreProvider } from "../../problem2/provider/StoreProvider";
 export default function Problem2() {
   return (
     <StoreProvider>
-      <div className='grid md:grid-cols-3 h-full p-4 gap-4'>
+      <div className='min-h-screen grid md:grid-cols-3 h-full p-4 gap-4'>
         <div className=' p-4 bg-gray-900 rounded-lg md:h-full md:col-span-1 md:max-h-full'>
           <div className='flex'>
             <div>

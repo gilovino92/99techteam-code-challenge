@@ -81,7 +81,6 @@ export default function SwapToken() {
   const onFromAmountChange = useCallback(
     (values: CurrencyInputOnChangeValues | undefined) => {
       if (!values) return;
-      console.log(values)
       setFromAmount(values.value || "0");
       const toAmount = (values.float || 0) * exchangeRate;
       setToAmount(toAmount.toString());

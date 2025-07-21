@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
-    <div className='flex w-full h-full items-center justify-center'>
+    <div className='min-h-screen flex w-full h-full items-center justify-center'>
       <div className=''>
         <h1 className='relative font-extrabold uppercase tracking-widest text-center mb-12 text-cyan-400 drop-shadow-[0_6px_32px_rgba(34,211,238,0.8)]'>
           <div className='relative z-10 text-white bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-fuchsia-400'>

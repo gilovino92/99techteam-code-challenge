@@ -1,69 +1,66 @@
-# React + TypeScript + Vite
+# React Problems Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a collection of coding problems implemented using **React** and **Vite**, with environment variables managed via a local `.env` file. Each problem is organized in its own folder under `src`, with a dedicated `README.md` file explaining the problem and its solution. The project is built and deployed to [URL X](https://example.com).
+## Deployment
 
-Currently, two official plugins are available:
+All problems are deployed at [https://99techteam-code-challenge-flax.vercel.app/](https://99techteam-code-challenge-flax.vercel.app/).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project Structure
 
-## Expanding the ESLint configuration
+- **src/**: Contains individual folders for each problem ( following the folder structure mentioned in Code Challenge).
+  - Each problem folder includes:
+    - Source code for the solution.
+    - A `README.md` with problem description and implementation details.
+- **.env**: Local environment file for configuration (not tracked in Git).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Problems
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Below is a list of problems included in this project, with links to their respective GitHub folders:
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+**[Problem 1](https://github.com/gilovino92/99techteam-code-challenge/tree/main/src/problem1)**  
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+**[Problem 2](https://github.com/gilovino92/99techteam-code-challenge/tree/main/src/problem2)**  
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+**[Problem 3](https://github.com/gilovino92/99techteam-code-challenge/tree/main/src/problem3)**  
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Setup
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/gilovino92/99techteam-code-challenge.git
+   cd repo
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**:
+   - Create a `.env` file in the root directory.
+   - Add necessary environment variables (e.g., `VITE_API_KEY=your_key`).
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+6. **Preview the production build**:
+   ```bash
+   npm run preview
+   ```
+
+## Technologies Used
+
+- **React**: Frontend library for building user interfaces.
+- **Vite**: Fast build tool and development server.
+- **Environment Variables**: Managed via `.env` for local configuration.
+
+## Contributing
+
+Feel free to submit pull requests or open issues for additional problems or improvements. Ensure each new problem is placed in its own folder under `src` with a `README.md` describing the problem and solution.
